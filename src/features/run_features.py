@@ -5,16 +5,22 @@ from src.features.build_features import encode, engineer_features, load_and_filt
 
 RAW_PATH = "data/raw/accepted_2007_to_2018q4.csv/accepted_2007_to_2018Q4.csv"
 
-df = load_and_filter(RAW_PATH, nrows=200_000)
+# Load the WHOLE file (we only read ~25 columns, so it fits in memory)
+df = load_and_filter(RAW_PATH)
 df = engineer_features(df)
-print(f"Resolved loans: {len(df)} | default rate: {df['target'].mean():.2%}")
 
-# Time-based split: train on the oldest 80%, test on the newest 20%
-cutoff = df["issue_d"].quantile(0.8)
-train_df = df[df["issue_d"] <= cutoff]
-test_df = df[df["issue_d"] > cutoff]
-print(f"Train: {len(train_df)} (up to {cutoff:%b %Y}) | Test: {len(test_df)}")
-print(f"Train default rate: {train_df['target'].mean():.2%} | Test: {test_df['target'].mean():.2%}")
+# Keep loans issued 2012-2015, where outcomes are mostly resolved
+df = df[(df["issue_d"] >= "2012-01-01") & (df["issue_d"] <= "2015-12-31")]
+
+# Explicit time split: train on 2012-2014, test on 2015
+train_df = df[df["issue_d"] < "2015-01-01"]
+test_df = df[df["issue_d"] >= "2015-01-01"]
+
+assert len(train_df) > 0 and len(test_df) > 0, "Empty split - check the date ranges"
+
+print(f"Resolved loans (2012-2015): {len(df)}")
+print(f"Train: {len(train_df)} | default rate {train_df['target'].mean():.2%}")
+print(f"Test:  {len(test_df)} | default rate {test_df['target'].mean():.2%}")
 
 X_train = encode(train_df)
 feature_columns = list(X_train.columns)
