@@ -9,6 +9,7 @@ from src.features.build_features import (
 
 MODEL_VERSION = "1.0.0"
 EMP_LABEL = {v: k for k, v in EMP_MAP.items()}  # 0 -> "< 1 year", 10 -> "10+ years"
+BINARY_PREFIXES = tuple(f"{c}_" for c in CATEGORICAL_COLS) + ("emp_length_missing",)
 
 FEATURE_LABELS = {
     "term": "Loan term (months)",
@@ -31,6 +32,14 @@ FEATURE_LABELS = {
     "purpose_small_business": "Loan purpose: small business",
 }
 
+def label_for(feature):
+    if feature in FEATURE_LABELS:
+        return FEATURE_LABELS[feature]
+    for col in CATEGORICAL_COLS:
+        if feature.startswith(f"{col}_"):
+            value = feature[len(col) + 1:].replace("_", " ")
+            return f"{col.replace('_', ' ').capitalize()}: {value}"
+    return feature.replace("_", " ")
 
 def to_raw_frame(records):
     """Convert friendly API inputs into the raw layout used in training."""
@@ -72,9 +81,12 @@ def _factors(values, row, columns, n, risk_increasing):
         if (risk_increasing and v <= 0) or (not risk_increasing and v >= 0):
             break
         val = row.iloc[j]
+        if val == 0 and columns[j].startswith(BINARY_PREFIXES):
+            continue  # "is NOT category X" is not a meaningful reason
+    
         picked.append({
             "feature": columns[j],
-            "label": FEATURE_LABELS.get(columns[j], columns[j].replace("_", " ")),
+            "label": label_for(columns[j]),
             "value": None if pd.isna(val) else round(float(val), 4),
             "shap": round(float(v), 4),
         })
@@ -90,7 +102,7 @@ def score(records, artifacts, n_reasons=4):
 
     proba = model.predict_proba(X)[:, 1]
     shap_matrix = explainer(X).values
-    t = meta["threshold"]
+    t = round(meta["threshold"], 4)
 
     results = []
     for i, p in enumerate(proba):

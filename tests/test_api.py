@@ -53,3 +53,10 @@ def test_batch():
         r = client.post("/predict/batch", json={"applications": [GOOD, RISKY]})
     body = r.json()
     assert r.status_code == 200 and body["count"] == 2 and len(body["predictions"]) == 2
+
+def test_no_absent_category_reasons():
+    with TestClient(app) as client:
+        res = client.post("/predict", json=GOOD).json()
+    for f in res["risk_drivers"] + res["protective_factors"]:
+        if f["feature"].startswith(("home_ownership_", "purpose_", "verification_status_", "application_type_")):
+            assert f["value"] == 1
