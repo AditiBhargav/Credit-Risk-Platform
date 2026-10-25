@@ -6,7 +6,7 @@ BAD = "Charged Off"
 
 # Columns a lender knows BEFORE approving the loan
 NUMERIC_COLS = [
-    "loan_amnt", "installment", "annual_inc", "dti", "delinq_2yrs",
+    "loan_amnt", "annual_inc", "dti", "delinq_2yrs",
     "fico_range_low", "fico_range_high", "inq_last_6mths", "open_acc",
     "pub_rec", "revol_bal", "revol_util", "total_acc", "mort_acc",
     "pub_rec_bankruptcies",
@@ -50,7 +50,6 @@ def engineer_features(df):
     # Ratios: how big is the loan relative to what the person earns?
     income = out["annual_inc"].replace(0, np.nan)
     out["loan_to_income"] = out["loan_amnt"] / income
-    out["payment_to_income"] = (out["installment"] * 12) / income
 
     return out
 

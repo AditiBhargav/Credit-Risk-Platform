@@ -1,7 +1,6 @@
 [
   "loan_amnt",
   "term",
-  "installment",
   "emp_length",
   "annual_inc",
   "dti",
@@ -18,7 +17,6 @@
   "credit_history_years",
   "fico_avg",
   "loan_to_income",
-  "payment_to_income",
   "home_ownership_ANY",
   "home_ownership_MORTGAGE",
   "home_ownership_NONE",

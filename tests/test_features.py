@@ -6,7 +6,7 @@ from src.features.build_features import encode, engineer_features
 
 def sample_df():
     return pd.DataFrame({
-        "loan_amnt": [10000, 5000], "installment": [300.0, 150.0],
+        "loan_amnt": [10000, 5000],
         "annual_inc": [50000.0, 0.0], "dti": [15.0, 20.0],
         "delinq_2yrs": [0, 1], "fico_range_low": [700, 660],
         "fico_range_high": [704, 664], "inq_last_6mths": [0, 2],
